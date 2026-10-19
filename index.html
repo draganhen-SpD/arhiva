@@ -1,0 +1,1209 @@
+<!DOCTYPE html>
+<html lang="sr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Arhiva programa">
+<meta name="theme-color" content="#0b5cab">
+<title>Arhiva programa</title>
+<style>
+:root{
+  --bg:#f1f4f8; --card:#ffffff; --text:#15202b; --muted:#5a6675; --pri:#0b5cab; --pri-t:#ffffff;
+  --bd:#cfd7e1; --warn-bg:#fff3cd; --warn-t:#6b4b00; --danger:#c62828; --ok:#1b7f3b; --soft:#e8eef6;
+}
+@media (prefers-color-scheme: dark){
+  :root{ --bg:#0f141a; --card:#1a222c; --text:#e9eef4; --muted:#9aa8b8; --pri:#4a9be8; --pri-t:#08121d;
+    --bd:#34414f; --warn-bg:#4a3b0c; --warn-t:#ffe08a; --danger:#ff7b72; --ok:#56d17a; --soft:#25303d; }
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--text);font:16px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  padding-bottom:calc(86px + env(safe-area-inset-bottom))}
+header{background:var(--pri);color:var(--pri-t);padding:calc(12px + env(safe-area-inset-top)) 16px 12px;display:flex;align-items:center;justify-content:space-between;gap:10px;position:sticky;top:0;z-index:20}
+header h1{font-size:20px;margin:0}
+.badge{background:rgba(255,255,255,.22);padding:6px 12px;border-radius:999px;font-weight:700;font-size:15px;white-space:nowrap}
+main{max-width:1100px;margin:0 auto;padding:12px}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:14px;margin-bottom:12px}
+.card h2{font-size:18px;margin:0 0 10px}
+.hint{color:var(--muted);font-size:14px;margin:8px 0 0}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:52px;padding:10px 18px;border-radius:12px;border:1.5px solid var(--bd);
+  background:var(--card);color:var(--text);font:600 17px/1.2 inherit;font-family:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.btn:active{transform:scale(.98)}
+.btn.primary{background:var(--pri);color:var(--pri-t);border-color:var(--pri)}
+.btn.danger{background:var(--danger);color:#fff;border-color:var(--danger)}
+.btn.dghost{color:var(--danger);border-color:var(--danger)}
+.btn.small{min-height:44px;padding:6px 12px;font-size:15px}
+.btn[disabled]{opacity:.45;cursor:not-allowed}
+.btnrow{display:flex;flex-wrap:wrap;gap:10px;margin:8px 0}
+.btnrow .btn{flex:1 1 180px}
+input[type=text],input[type=date],input[type=search],select,textarea{width:100%;min-height:48px;padding:10px 12px;border:1.5px solid var(--bd);border-radius:10px;
+  background:var(--card);color:var(--text);font:16px/1.3 inherit;font-family:inherit}
+textarea{min-height:64px;resize:vertical}
+label.lbl{display:block;font-weight:600;font-size:14px;color:var(--muted);margin:10px 0 4px}
+.bad{border-color:var(--danger)!important;box-shadow:0 0 0 2px rgba(198,40,40,.25)}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{position:relative}
+.chip input{position:absolute;opacity:0;width:100%;height:100%;left:0;top:0;margin:0;cursor:pointer}
+.chip span{display:inline-flex;align-items:center;justify-content:center;min-height:46px;min-width:86px;padding:8px 14px;border-radius:10px;border:1.5px solid var(--bd);background:var(--soft);font-weight:700;font-size:15px}
+.chip input:checked + span{background:var(--pri);color:var(--pri-t);border-color:var(--pri)}
+.chip input:focus-visible + span{outline:3px solid var(--pri);outline-offset:2px}
+.chips.bad{border-radius:10px;padding:4px}
+.chips.big .chip span{min-height:54px;font-size:17px;min-width:100px}
+.warn{background:var(--warn-bg);color:var(--warn-t);padding:8px 10px;border-radius:8px;margin-top:6px;font-size:14px}
+.warn button{margin-top:6px;min-height:40px;border-radius:8px;border:1.5px solid currentColor;background:transparent;color:inherit;font-weight:700;font-size:15px;padding:4px 12px;font-family:inherit}
+.msg{padding:10px 12px;border-radius:10px;margin:10px 0;font-size:15px}
+.msg.err{background:rgba(198,40,40,.12);color:var(--danger);border:1px solid var(--danger)}
+.msg.info{background:var(--soft)}
+.bar{height:12px;background:var(--soft);border-radius:999px;overflow:hidden}
+#barFill{height:100%;width:0;background:var(--pri)}
+#preview{max-width:100%;max-height:220px;border-radius:10px;border:1px solid var(--bd);display:block;margin:6px 0}
+pre{white-space:pre-wrap;word-break:break-word;background:var(--soft);padding:10px;border-radius:8px;font-size:13px;max-height:260px;overflow:auto}
+summary{cursor:pointer;font-weight:600;padding:8px 0}
+table.rt{width:100%;border-collapse:collapse}
+table.rt th{text-align:left;font-size:13px;color:var(--muted);padding:6px 8px;border-bottom:2px solid var(--bd)}
+table.rt td{padding:8px;border-bottom:1px solid var(--bd);vertical-align:top}
+table.rt tr.click{cursor:pointer}
+table.rt tr.click:hover{background:var(--soft)}
+.sel{width:44px}
+.sel input{width:26px;height:26px}
+.muted{color:var(--muted)}
+.tag{display:inline-block;background:var(--soft);padding:2px 10px;border-radius:999px;font-weight:700;font-size:14px}
+.filters{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px}
+nav.tabs{position:fixed;left:0;right:0;bottom:0;background:var(--card);border-top:1px solid var(--bd);display:flex;padding-bottom:env(safe-area-inset-bottom);z-index:30}
+nav.tabs button{flex:1;min-height:62px;border:0;background:transparent;color:var(--muted);font:600 14px/1.2 inherit;font-family:inherit;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;cursor:pointer}
+nav.tabs button .ic{font-size:22px}
+nav.tabs button.on{color:var(--pri)}
+.overlay{position:fixed;left:0;right:0;top:0;bottom:0;background:rgba(0,0,0,.55);display:flex;align-items:flex-end;justify-content:center;z-index:50}
+#dlg{z-index:60}
+.sheet{background:var(--card);color:var(--text);width:100%;max-width:640px;max-height:92vh;overflow:auto;border-radius:18px 18px 0 0;padding:16px 16px calc(16px + env(safe-area-inset-bottom))}
+.sheet h3{margin:0 0 8px;font-size:20px}
+.dlgbtns{display:flex;flex-direction:column;gap:10px;margin-top:14px}
+.hist{list-style:none;margin:0;padding:0}
+.hist li{border:1px solid var(--bd);border-radius:10px;padding:10px;margin-bottom:8px;background:var(--soft)}
+.hist .d{font-weight:700}
+.hist .c{white-space:pre-wrap;word-break:break-word;margin-top:4px}
+#toast{position:fixed;left:12px;right:12px;bottom:calc(76px + env(safe-area-inset-bottom));z-index:80;max-width:560px;margin:0 auto;padding:14px 16px;border-radius:12px;background:var(--ok);color:#fff;font-weight:600;box-shadow:0 6px 20px rgba(0,0,0,.3)}
+#toast.err{background:var(--danger)}
+.vh{position:absolute;width:1px;height:1px;overflow:hidden;opacity:0;pointer-events:none}
+.sticky-save{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px}
+.sticky-save .btn{flex:1 1 200px}
+@media (max-width:760px){
+  table.rt thead{display:none}
+  table.rt,table.rt tbody,table.rt tr,table.rt td{display:block;width:100%}
+  table.rt tr{border:1px solid var(--bd);border-radius:12px;padding:10px;margin-bottom:10px;background:var(--card)}
+  table.rt td{border:0;padding:6px 0}
+  table.rt td[data-label]::before{content:attr(data-label);display:block;font-size:13px;font-weight:600;color:var(--muted);margin-bottom:3px}
+  table.rt td.sel{width:auto}
+}
+@media (min-width:761px){
+  .overlay{align-items:center}
+  .sheet{border-radius:18px}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Arhiva programa</h1>
+  <span class="badge" id="count">Sačuvano: 0</span>
+</header>
+
+<main>
+  <div id="storeWarn" class="msg err" hidden></div>
+
+  <!-- ================= UNOS ================= -->
+  <section id="tab-unos">
+    <div class="card">
+      <h2>1. Stanica za celu listu</h2>
+      <div class="chips big" id="gStation">
+        <label class="chip"><input type="radio" name="gst" value="ROY_69"><span>ROY_69</span></label>
+        <label class="chip"><input type="radio" name="gst" value="ROY_70"><span>ROY_70</span></label>
+        <label class="chip"><input type="radio" name="gst" value="ROY_72"><span>ROY_72</span></label>
+        <label class="chip"><input type="radio" name="gst" value="ROY_73"><span>ROY_73</span></label>
+      </div>
+      <p class="hint">Izbor se odmah postavlja za sve redove u tabeli. Stanicu pojedinačnog reda možete posle promeniti u samom redu.</p>
+    </div>
+
+    <div class="card">
+      <h2>2. Fotografija liste</h2>
+      <div class="btnrow">
+        <button type="button" class="btn primary" id="btnCam">📷 Slikaj listu</button>
+        <button type="button" class="btn" id="btnGal">🖼️ Izaberi iz galerije</button>
+      </div>
+      <input class="vh" type="file" id="camInput" accept="image/*" capture="environment" tabindex="-1">
+      <input class="vh" type="file" id="galInput" accept="image/*" tabindex="-1">
+      <div id="previewBox" hidden>
+        <img id="preview" alt="Fotografija liste">
+        <div class="muted" id="fileName"></div>
+      </div>
+      <label class="lbl" for="ocrMode">Način prepoznavanja</label>
+      <select id="ocrMode">
+        <option value="7">Jedan naziv / veliki tekst (preporučeno)</option>
+        <option value="6">Lista / tabela</option>
+        <option value="3">Automatski</option>
+        <option value="11">Razbacan tekst</option>
+      </select>
+      <div class="btnrow">
+        <button type="button" class="btn primary" id="btnOcr" disabled>🔍 Prepoznaj tekst</button>
+      </div>
+      <div id="prog" hidden>
+        <div class="bar"><div id="barFill"></div></div>
+        <div class="muted" id="progText"></div>
+      </div>
+      <div id="ocrMsg" class="msg" hidden></div>
+      <details id="rawBox" hidden>
+        <summary>Prikaži tekst koji je OCR prepoznao</summary>
+        <pre id="rawText"></pre>
+      </details>
+      <p class="hint">OCR zahteva internet vezu (biblioteka i jezički podaci se preuzimaju prvi put). Fotografija se ne šalje nikome na obradu — prepoznavanje se izvršava u vašem pregledaču.</p>
+    </div>
+
+    <div class="card">
+      <h2>3. Provera i izmena <span class="tag" id="rowCount">0 redova</span></h2>
+      <div id="rowsEmpty" class="msg info">Još nema redova. Slikajte listu i pritisnite „Prepoznaj tekst“, ili dodajte red ručno.</div>
+      <div id="rowsWrap" hidden>
+        <p class="hint" style="margin-top:0">Proverite i ispravite svako polje. Ništa se ne čuva dok ne pritisnete „Sačuvaj u arhivu“.</p>
+        <table class="rt">
+          <thead><tr>
+            <th>Ime programa</th><th>Stanica</th><th>Datum programiranja</th><th>Datum izmene (opciono)</th><th>Komentar / ID šava (opciono)</th><th></th>
+          </tr></thead>
+          <tbody id="rowsBody"></tbody>
+        </table>
+      </div>
+      <div class="btnrow"><button type="button" class="btn" id="btnAddRow">➕ Dodaj red ručno</button></div>
+      <div class="sticky-save">
+        <button type="button" class="btn primary" id="btnSave" disabled>💾 Sačuvaj u arhivu</button>
+        <button type="button" class="btn dghost" id="btnReset">Resetuj unos</button>
+      </div>
+      <p class="hint">„Resetuj unos“ briše samo ovu pripremljenu listu. Sačuvana arhiva ostaje netaknuta.</p>
+    </div>
+  </section>
+
+  <!-- ================= ARHIVA ================= -->
+  <section id="tab-arhiva" hidden>
+    <div class="card">
+      <h2>Pretraga i filteri</h2>
+      <div class="filters">
+        <div>
+          <label class="lbl" for="q">Traži</label>
+          <input type="search" id="q" placeholder="deo imena ili komentara" autocomplete="off" autocapitalize="off">
+        </div>
+        <div>
+          <label class="lbl" for="qIn">Traži u</label>
+          <select id="qIn">
+            <option value="both">Ime i komentar</option>
+            <option value="name">Samo ime</option>
+            <option value="comment">Samo komentar</option>
+          </select>
+        </div>
+        <div>
+          <label class="lbl" for="fStation">Stanica</label>
+          <select id="fStation">
+            <option value="">Sve stanice</option>
+            <option>ROY_69</option><option>ROY_70</option><option>ROY_72</option><option>ROY_73</option>
+          </select>
+        </div>
+        <div>
+          <label class="lbl" for="fFrom">Programirano od</label>
+          <input type="date" id="fFrom">
+        </div>
+        <div>
+          <label class="lbl" for="fTo">Programirano do</label>
+          <input type="date" id="fTo">
+        </div>
+      </div>
+      <div class="btnrow">
+        <button type="button" class="btn small" id="btnClearF">Poništi filtere</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="btnrow" style="margin-top:0">
+        <button type="button" class="btn small" id="btnSelAll">Izaberi sve prikazane</button>
+        <button type="button" class="btn small dghost" id="btnDelSel" disabled>Obriši izabrane (0)</button>
+      </div>
+      <div class="muted" id="archInfo"></div>
+      <div id="archEmpty" class="msg info" hidden></div>
+      <table class="rt">
+        <thead><tr><th class="sel"></th><th>Program</th><th>Stanica</th><th>Programirano</th><th>Poslednja korekcija</th><th>Korekcija</th></tr></thead>
+        <tbody id="archBody"></tbody>
+      </table>
+      <p class="hint">Dodirnite program da vidite istoriju, dodate novu korekciju ili ga obrišete.</p>
+    </div>
+  </section>
+
+  <!-- ================= REZERVNA KOPIJA ================= -->
+  <section id="tab-kopija" hidden>
+    <div class="card">
+      <h2>Rezervna kopija</h2>
+      <p>U arhivi je trenutno sačuvano: <strong id="bkCount">0</strong> programa.</p>
+      <p class="muted" id="bkStore"></p>
+      <div class="btnrow">
+        <button type="button" class="btn primary" id="btnExpJson">⬇️ Izvezi JSON (rezervna kopija)</button>
+        <button type="button" class="btn" id="btnExpCsv">📊 Izvezi CSV (Excel)</button>
+      </div>
+      <div class="btnrow">
+        <button type="button" class="btn" id="btnImp">⬆️ Uvezi JSON kopiju</button>
+      </div>
+      <input class="vh" type="file" id="impInput" accept=".json,application/json" tabindex="-1">
+      <p class="hint">CSV koristi tačku-zarez kao separator i UTF-8, pa se u Excel-u otvara sa ispravnim slovima (č, ć, š, ž, đ).</p>
+    </div>
+    <div class="card">
+      <h2>Gde se čuvaju podaci — važno</h2>
+      <ul>
+        <li>Podaci se čuvaju <strong>samo lokalno u pregledaču ovog uređaja</strong>. Nema registracije, naloga ni servera.</li>
+        <li><strong>Ne sinhronizuju se</strong> između uređaja. Ako promenite telefon ili računar, morate preneti JSON kopiju.</li>
+        <li>Privatno pregledanje, brisanje podataka sajtova / istorije Safari-ja ili reset telefona <strong>mogu obrisati arhivu</strong>. Safari može obrisati podatke sajtova koje dugo niste otvarali.</li>
+        <li>Zato redovno izvezite JSON kopiju i sačuvajte je u Files / iCloud Drive.</li>
+        <li>Za pouzdano korišćenje na iPhone-u: otvorite aplikaciju sa web adrese (besplatno hostovanje, npr. GitHub Pages ili Cloudflare Pages) i izaberite Safari → Podeli → „Dodaj na početni ekran“. HTML fajl otvoren direktno iz aplikacije Files često ne omogućava trajno čuvanje podataka ni kameru.</li>
+      </ul>
+    </div>
+  </section>
+</main>
+
+<nav class="tabs" aria-label="Glavni meni">
+  <button type="button" id="nav-unos" class="on"><span class="ic">📋</span>Unos</button>
+  <button type="button" id="nav-arhiva"><span class="ic">🗄️</span>Arhiva</button>
+  <button type="button" id="nav-kopija"><span class="ic">💾</span>Kopija</button>
+</nav>
+
+<!-- detalj programa -->
+<div class="overlay" id="detail" hidden>
+  <div class="sheet" id="detailSheet" role="dialog" aria-modal="true" aria-label="Detalji programa">
+    <div id="detailBody"></div>
+    <div class="dlgbtns"><button type="button" class="btn" id="btnCloseDetail">Zatvori</button></div>
+  </div>
+</div>
+
+<!-- dijalog za potvrdu -->
+<div class="overlay" id="dlg" hidden>
+  <div class="sheet" role="alertdialog" aria-modal="true" aria-labelledby="dlgTitle">
+    <h3 id="dlgTitle"></h3>
+    <div id="dlgText"></div>
+    <div class="dlgbtns" id="dlgBtns"></div>
+  </div>
+</div>
+
+<div id="toast" role="status" aria-live="polite" hidden></div>
+
+<script>
+'use strict';
+
+/* ============ KONSTANTE ============ */
+var STATIONS = ['ROY_69', 'ROY_70', 'ROY_72', 'ROY_73'];
+var DB_NAME = 'arhiva-programa';
+var STORE = 'programs';
+var OCR_CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_-./ ';
+var TESS_CDN = 'https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js';
+
+var state = {
+  rows: [],
+  globalStation: '',
+  file: null,
+  previewUrl: '',
+  busy: false,
+  selected: new Set(),
+  detailId: null
+};
+var archive = [];
+var store = null;
+
+/* ============ POMOĆNE FUNKCIJE ============ */
+function $(s, r) { return (r || document).querySelector(s); }
+function $$(s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); }
+function esc(s) {
+  return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+    return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+  });
+}
+function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 9); }
+function pad2(n) { return (n < 10 ? '0' : '') + n; }
+function todayISO() {
+  var d = new Date();
+  return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate());
+}
+function fmtDate(iso) {
+  var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso || '');
+  return m ? m[3] + '.' + m[2] + '.' + m[1] : (iso || '—');
+}
+var toastTimer = null;
+function toast(msg, type) {
+  var t = $('#toast');
+  t.textContent = msg;
+  t.className = type === 'err' ? 'err' : '';
+  t.hidden = false;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(function () { t.hidden = true; }, type === 'err' ? 7000 : 3800);
+}
+function plural(n, one, many) { return n === 1 ? one : many; }
+
+/* Dijalog sa dugmadima; vraća Promise sa vrednošću izabranog dugmeta */
+function askChoice(title, html, buttons) {
+  return new Promise(function (resolve) {
+    $('#dlgTitle').textContent = title;
+    $('#dlgText').innerHTML = html;
+    var box = $('#dlgBtns');
+    box.innerHTML = '';
+    buttons.forEach(function (b) {
+      var el = document.createElement('button');
+      el.type = 'button';
+      el.className = 'btn ' + (b.cls || '');
+      el.textContent = b.label;
+      el.addEventListener('click', function () { $('#dlg').hidden = true; resolve(b.value); });
+      box.appendChild(el);
+    });
+    $('#dlg').hidden = false;
+  });
+}
+
+/* ============ SKLADIŠTE ============ */
+function openIDB() {
+  return new Promise(function (resolve, reject) {
+    if (!window.indexedDB) { reject(new Error('IndexedDB nije dostupan')); return; }
+    var req;
+    try { req = indexedDB.open(DB_NAME, 1); } catch (e) { reject(e); return; }
+    req.onupgradeneeded = function () {
+      var db = req.result;
+      if (!db.objectStoreNames.contains(STORE)) db.createObjectStore(STORE, { keyPath: 'id' });
+    };
+    req.onsuccess = function () { resolve(req.result); };
+    req.onerror = function () { reject(req.error || new Error('IndexedDB greška')); };
+    req.onblocked = function () { reject(new Error('IndexedDB blokiran')); };
+  });
+}
+function idbBackend(db) {
+  function tx(mode, fn) {
+    return new Promise(function (resolve, reject) {
+      var t, out;
+      try {
+        t = db.transaction(STORE, mode);
+        out = fn(t.objectStore(STORE));
+      } catch (e) { reject(e); return; }
+      t.oncomplete = function () { resolve(out && out.result !== undefined ? out.result : undefined); };
+      t.onerror = function () { reject(t.error); };
+      t.onabort = function () { reject(t.error || new Error('Transakcija prekinuta')); };
+    });
+  }
+  return {
+    name: 'IndexedDB',
+    getAll: function () { return tx('readonly', function (s) { return s.getAll(); }).then(function (r) { return r || []; }); },
+    putMany: function (items) { return tx('readwrite', function (s) { items.forEach(function (i) { s.put(i); }); }); },
+    delMany: function (ids) { return tx('readwrite', function (s) { ids.forEach(function (i) { s.delete(i); }); }); },
+    clear: function () { return tx('readwrite', function (s) { s.clear(); }); }
+  };
+}
+function lsBackend() {
+  var K = 'arhiva-programa-v1';
+  localStorage.setItem('__arhiva_test', '1');
+  localStorage.removeItem('__arhiva_test');
+  function read() { try { return JSON.parse(localStorage.getItem(K) || '[]'); } catch (e) { return []; } }
+  function write(a) { localStorage.setItem(K, JSON.stringify(a)); }
+  return {
+    name: 'localStorage (rezervno skladište)',
+    getAll: function () { return Promise.resolve(read()); },
+    putMany: function (items) {
+      var m = new Map(read().map(function (x) { return [x.id, x]; }));
+      items.forEach(function (i) { m.set(i.id, i); });
+      write(Array.from(m.values()));
+      return Promise.resolve();
+    },
+    delMany: function (ids) { write(read().filter(function (x) { return ids.indexOf(x.id) < 0; })); return Promise.resolve(); },
+    clear: function () { write([]); return Promise.resolve(); }
+  };
+}
+function memBackend() {
+  var m = new Map();
+  return {
+    name: 'MEMORIJA (podaci se NE čuvaju)',
+    volatile: true,
+    getAll: function () { return Promise.resolve(Array.from(m.values())); },
+    putMany: function (items) { items.forEach(function (i) { m.set(i.id, i); }); return Promise.resolve(); },
+    delMany: function (ids) { ids.forEach(function (i) { m.delete(i); }); return Promise.resolve(); },
+    clear: function () { m.clear(); return Promise.resolve(); }
+  };
+}
+function initStorage() {
+  return openIDB().then(function (db) {
+    var b = idbBackend(db);
+    return b.getAll().then(function () { return b; });
+  }).catch(function () {
+    try { return lsBackend(); } catch (e) { return memBackend(); }
+  });
+}
+
+/* ============ OCR: PARSIRANJE ============ */
+var STOP = ['program', 'programa', 'programi', 'programm', 'datum', 'date', 'name', 'ime', 'naziv', 'stanica', 'station', 'lista', 'list',
+  'seite', 'page', 'robot', 'komentar', 'bemerkung', 'anlage', 'zelle', 'cell', 'nummer', 'number', 'datei', 'file', 'welding', 'weld'];
+
+function findDates(line) {
+  var out = [];
+  var re = /(\d{1,4})\s?[.\/\-]\s?(\d{1,2})\s?[.\/\-]\s?(\d{1,4})/g;
+  var m;
+  while ((m = re.exec(line))) {
+    var d, mo, y;
+    if (m[1].length === 4) {
+      if (m[3].length > 2) continue;
+      y = +m[1]; mo = +m[2]; d = +m[3];
+    } else if (m[3].length === 4) {
+      d = +m[1]; mo = +m[2]; y = +m[3];
+    } else if (m[3].length === 2) {
+      d = +m[1]; mo = +m[2]; y = 2000 + (+m[3]);
+    } else continue;
+    if (y < 2000 || y > 2100 || mo < 1 || mo > 12 || d < 1 || d > 31) continue;
+    out.push({ iso: y + '-' + pad2(mo) + '-' + pad2(d), index: m.index, len: m[0].length });
+  }
+  return out;
+}
+function isCandidate(t, strict) {
+  if (t.length < 3 || !/[A-Za-z]/.test(t)) return false;
+  if (STOP.indexOf(t.toLowerCase()) >= 0) return false;
+  if (/^ROY_?\d+$/i.test(t)) return false;
+  if (strict) return /[\d_\-.]/.test(t);
+  return t.length >= 4;
+}
+function parseOcrText(text) {
+  var lines = String(text || '').replace(/[\u2010-\u2015\u2212]/g, '-').split(/\r?\n/).map(function (s) { return s.trim(); }).filter(Boolean);
+  var found = [], seen = {}, headerDate = '';
+  lines.forEach(function (line) {
+    var dates = findDates(line);
+    var rest = line;
+    dates.slice().reverse().forEach(function (d) { rest = rest.slice(0, d.index) + ' ' + rest.slice(d.index + d.len); });
+    var tokens = rest.split(/[\s|;,]+/).map(function (t) { return t.replace(/^[^A-Za-z0-9_]+|[^A-Za-z0-9_]+$/g, ''); }).filter(Boolean);
+    var name = '', i;
+    for (i = 0; i < tokens.length; i++) { if (isCandidate(tokens[i], true)) { name = tokens[i]; break; } }
+    var headerLike = tokens.some(function (t) { return STOP.indexOf(t.toLowerCase()) >= 0; });
+    if (!name && dates.length && !headerLike) {
+      for (i = 0; i < tokens.length; i++) { if (isCandidate(tokens[i], false)) { name = tokens[i]; break; } }
+    }
+    if (!name) { if (dates.length && !headerDate) headerDate = dates[0].iso; return; }
+    var k = name.toLowerCase();
+    if (seen[k]) return;
+    seen[k] = true;
+    found.push({ name: name, date: dates.length ? dates[0].iso : '' });
+  });
+  return { found: found, headerDate: headerDate };
+}
+function fallbackParse(text) {
+  var seen = {}, found = [];
+  String(text || '').replace(/[\u2010-\u2015\u2212]/g, '-').split(/\r?\n/).forEach(function (line) {
+    var t = line.replace(/\s+/g, '').replace(/[^A-Za-z0-9_\-.]/g, '').replace(/^[^A-Za-z0-9_]+|[^A-Za-z0-9_]+$/g, '');
+    if (t.length < 4 || t.length > 40 || !/[A-Za-z0-9]/.test(t)) return;
+    var k = t.toLowerCase();
+    if (seen[k]) return;
+    seen[k] = true;
+    found.push({ name: t, date: '' });
+  });
+  return { found: found, headerDate: '' };
+}
+function rowsFromParsed(parsed) {
+  return parsed.found.map(function (f) {
+    if (f.date) return newRow({ name: f.name, dateProg: f.date, suggested: false });
+    if (parsed.headerDate) return newRow({ name: f.name, dateProg: parsed.headerDate, suggested: true, note: 'Datum nije pronađen uz program — predlog je datum sa zaglavlja liste. Potvrdite ga.' });
+    return newRow({ name: f.name, dateProg: todayISO(), suggested: true, note: 'Datum nije pronađen na fotografiji — predlog je današnji datum. Potvrdite ga ili ga promenite.' });
+  });
+}
+
+/* ============ OCR: SLIKA I TESSERACT ============ */
+function loadImage(file) {
+  return new Promise(function (resolve, reject) {
+    var url = URL.createObjectURL(file);
+    var img = new Image();
+    img.onload = function () { URL.revokeObjectURL(url); resolve(img); };
+    img.onerror = function () { URL.revokeObjectURL(url); reject(new Error('Slika se ne može otvoriti.')); };
+    img.src = url;
+  });
+}
+function prepareCanvas(file) {
+  return loadImage(file).then(function (img) {
+    var MAX = 2400;
+    var w = img.naturalWidth, h = img.naturalHeight;
+    var k = Math.min(1, MAX / Math.max(w, h));
+    w = Math.max(1, Math.round(w * k)); h = Math.max(1, Math.round(h * k));
+    var PAD = 60;
+    var c = document.createElement('canvas');
+    c.width = w + 2 * PAD; c.height = h + 2 * PAD;
+    var ctx = c.getContext('2d');
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, c.width, c.height);
+    ctx.drawImage(img, PAD, PAD, w, h);
+    w = c.width; h = c.height;
+    try {
+      var id = ctx.getImageData(0, 0, w, h), d = id.data, hist = new Uint32Array(256), i;
+      for (i = 0; i < d.length; i += 4) {
+        var g = ((d[i] * 299 + d[i + 1] * 587 + d[i + 2] * 114) / 1000) | 0;
+        d[i] = g; hist[g]++;
+      }
+      var total = w * h, acc = 0, lo = 0, hi = 255;
+      for (i = 0; i < 256; i++) { acc += hist[i]; if (acc >= total * 0.01) { lo = i; break; } }
+      acc = 0;
+      for (i = 255; i >= 0; i--) { acc += hist[i]; if (acc >= total * 0.01) { hi = i; break; } }
+      if (hi - lo < 30) { lo = 0; hi = 255; }
+      var sc = 255 / (hi - lo);
+      for (i = 0; i < d.length; i += 4) {
+        var v = (d[i] - lo) * sc;
+        v = v < 0 ? 0 : (v > 255 ? 255 : v);
+        d[i] = d[i + 1] = d[i + 2] = v;
+      }
+      ctx.putImageData(id, 0, 0);
+    } catch (e) { /* ako obrada piksela ne uspe, koristi se original */ }
+    return c;
+  });
+}
+var tessPromise = null;
+function loadTesseract() {
+  if (window.Tesseract) return Promise.resolve();
+  if (tessPromise) return tessPromise;
+  tessPromise = new Promise(function (resolve, reject) {
+    var s = document.createElement('script');
+    s.src = TESS_CDN;
+    s.onload = function () { window.Tesseract ? resolve() : reject(new Error('lib')); };
+    s.onerror = function () { s.remove(); reject(new Error('lib')); };
+    document.head.appendChild(s);
+  });
+  tessPromise.catch(function () { tessPromise = null; });
+  return tessPromise;
+}
+function setProgress(text, frac) {
+  $('#prog').hidden = false;
+  $('#progText').textContent = text;
+  $('#barFill').style.width = Math.round(Math.max(0, Math.min(1, frac)) * 100) + '%';
+}
+function statusSr(s) {
+  s = String(s || '');
+  if (s.indexOf('loading tesseract core') >= 0) return 'Učitavanje OCR programa…';
+  if (s.indexOf('language') >= 0) return 'Preuzimanje jezičkih podataka…';
+  if (s.indexOf('initializ') >= 0) return 'Pokretanje OCR-a…';
+  return 'Priprema…';
+}
+function showOcrMsg(text, type) {
+  var m = $('#ocrMsg');
+  if (!text) { m.hidden = true; return; }
+  m.textContent = text;
+  m.className = 'msg ' + (type || 'info');
+  m.hidden = false;
+}
+function setBusy(b) {
+  state.busy = b;
+  $('#btnOcr').disabled = b || !state.file;
+  $('#btnCam').disabled = b;
+  $('#btnGal').disabled = b;
+}
+async function runOcr() {
+  if (state.busy) return;
+  if (!state.file) { toast('Prvo slikajte listu ili izaberite fotografiju.', 'err'); return; }
+  showOcrMsg('');
+  setBusy(true);
+  var worker = null;
+  try {
+    setProgress('Učitavanje OCR biblioteke…', 0.03);
+    try { await loadTesseract(); }
+    catch (e) {
+      showOcrMsg(navigator.onLine === false
+        ? 'Nema internet veze. OCR biblioteka se učitava preko interneta — povežite se i pokušajte ponovo.'
+        : 'OCR biblioteka ne može da se učita. Proverite internet vezu i pokušajte ponovo.', 'err');
+      return;
+    }
+    setProgress('Priprema slike…', 0.06);
+    var canvas = await prepareCanvas(state.file);
+    var mode = $('#ocrMode').value;
+    try {
+      worker = await Tesseract.createWorker('eng', 1, {
+        logger: function (m) {
+          if (m.status === 'recognizing text') setProgress('Prepoznavanje teksta… ' + Math.round(m.progress * 100) + '%', 0.15 + 0.85 * m.progress);
+          else setProgress(statusSr(m.status), 0.1);
+        }
+      });
+    } catch (e) {
+      showOcrMsg('OCR nije mogao da se pokrene (verovatno nedostaje internet za preuzimanje jezičkih podataka). Proverite vezu i pokušajte ponovo.', 'err');
+      return;
+    }
+    var order = [mode].concat(['7', '6', '11', '3'].filter(function (m) { return m !== mode; }));
+    var firstText = '', goodText = '', all = [];
+    for (var oi = 0; oi < order.length; oi++) {
+      setProgress('Prepoznavanje teksta… (pokušaj ' + (oi + 1) + ' od ' + order.length + ')', 0.2);
+      try { await worker.setParameters({ tessedit_pageseg_mode: order[oi], preserve_interword_spaces: '1', tessedit_char_whitelist: OCR_CHARS }); } catch (e) { /* nije kritično */ }
+      var res = await worker.recognize(canvas);
+      var text = (res && res.data && res.data.text) || '';
+      all.push('[način ' + order[oi] + '] ' + (text.trim() || '(prazno)'));
+      if (!firstText && text.trim()) firstText = text;
+      if (parseOcrText(text).found.length) { goodText = text; break; }
+    }
+    $('#rawText').textContent = all.join('\n');
+    $('#rawBox').hidden = false;
+    await applyOcrText(goodText || firstText, !goodText);
+  } catch (e) {
+    showOcrMsg('Prepoznavanje nije uspelo: ' + (e && e.message ? e.message : 'nepoznata greška') + '. Pokušajte ponovo sa jasnijom fotografijom ili dodajte redove ručno.', 'err');
+  } finally {
+    if (worker) { try { await worker.terminate(); } catch (e) { } }
+    $('#prog').hidden = true;
+    setBusy(false);
+  }
+}
+async function applyOcrText(text, useFallback) {
+  var parsed = parseOcrText(text);
+  var guessed = false;
+  if (!parsed.found.length && useFallback) { parsed = fallbackParse(text); guessed = parsed.found.length > 0; }
+  var rows = rowsFromParsed(parsed);
+  if (!rows.length) {
+    showOcrMsg('Nisu pronađeni nazivi programa. Probajte drugi način prepoznavanja, jasniju i ravniju fotografiju, ili dodajte redove ručno. Pogledajte i prepoznati tekst ispod.', 'err');
+    return 'none';
+  }
+  var mode = 'replace';
+  if (state.rows.length) {
+    mode = await askChoice('Već postoje redovi u tabeli',
+      '<p>Pronađeno je <strong>' + rows.length + '</strong> ' + plural(rows.length, 'program', 'programa') + '. U tabeli već ima ' + state.rows.length + ' redova.</p>',
+      [{ label: 'Dodaj na postojeće redove', value: 'add', cls: 'primary' },
+       { label: 'Zameni postojeće redove', value: 'replace' },
+       { label: 'Otkaži', value: 'cancel' }]);
+    if (mode === 'cancel') return 'cancel';
+  }
+  state.rows = mode === 'add' ? state.rows.concat(rows) : rows;
+  renderRows();
+  showOcrMsg(guessed
+    ? 'Tekst nije u očekivanom obliku, pa je prepoznato kao predlog imena. Obavezno proverite i ispravite ime u tabeli.'
+    : 'Prepoznato programa: ' + rows.length + '. Proverite podatke u tabeli pre čuvanja.', 'info');
+  return 'ok';
+}
+
+/* ============ TABELA UNOSA ============ */
+function newRow(o) {
+  return Object.assign({
+    uid: uid(), name: '', station: state.globalStation, dateProg: todayISO(), suggested: false, note: '',
+    dateMod: '', comment: '', err: {}
+  }, o || {});
+}
+function rowByUid(u) { return state.rows.filter(function (r) { return r.uid === u; })[0]; }
+function rowHTML(r) {
+  var chips = STATIONS.map(function (s) {
+    return '<label class="chip"><input type="radio" name="st-' + r.uid + '" value="' + s + '" data-act="row-station"' + (r.station === s ? ' checked' : '') + '><span>' + s + '</span></label>';
+  }).join('');
+  return '<tr data-uid="' + r.uid + '">' +
+    '<td data-label="Ime programa"><input type="text" data-f="name" value="' + esc(r.name) + '" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" class="' + (r.err.name ? 'bad' : '') + '"></td>' +
+    '<td data-label="Stanica"><div class="chips ' + (r.err.station ? 'bad' : '') + '">' + chips + '</div></td>' +
+    '<td data-label="Datum programiranja"><input type="date" data-f="dateProg" value="' + esc(r.dateProg) + '" class="' + (r.err.dateProg ? 'bad' : '') + '">' +
+      (r.suggested ? '<div class="warn">⚠️ ' + esc(r.note || 'Predlog datuma — potvrdite.') + '<br><button type="button" data-act="confirm-date">Potvrdi ovaj datum</button></div>' : '') + '</td>' +
+    '<td data-label="Datum izmene (opciono)"><input type="date" data-f="dateMod" value="' + esc(r.dateMod) + '"></td>' +
+    '<td data-label="Komentar / ID šava (opciono)"><textarea data-f="comment" rows="2" placeholder="npr. Potrebna korekcija ID šava 125">' + esc(r.comment) + '</textarea></td>' +
+    '<td data-label=""><button type="button" class="btn small dghost" data-act="row-del">Ukloni red</button></td>' +
+    '</tr>';
+}
+function renderRows() {
+  var n = state.rows.length;
+  $('#rowsWrap').hidden = !n;
+  $('#rowsEmpty').hidden = n > 0;
+  $('#rowsBody').innerHTML = state.rows.map(rowHTML).join('');
+  $('#rowCount').textContent = n + ' ' + plural(n, 'red', 'redova');
+  $('#btnSave').disabled = !n;
+}
+function clearEntry() {
+  state.rows = [];
+  state.file = null;
+  if (state.previewUrl) { URL.revokeObjectURL(state.previewUrl); state.previewUrl = ''; }
+  $('#previewBox').hidden = true;
+  $('#preview').removeAttribute('src');
+  $('#rawBox').hidden = true;
+  $('#rawText').textContent = '';
+  $('#camInput').value = '';
+  $('#galInput').value = '';
+  showOcrMsg('');
+  $('#prog').hidden = true;
+  $('#btnOcr').disabled = true;
+  renderRows();
+}
+async function resetEntry() {
+  if (state.rows.length || state.file) {
+    var c = await askChoice('Resetovati trenutni unos?',
+      '<p>Briše se pripremljena lista i fotografija koje još nisu sačuvane. <strong>Sačuvana arhiva se ne briše.</strong></p>',
+      [{ label: 'Da, resetuj unos', value: 'ok', cls: 'danger' }, { label: 'Nazad', value: 'no' }]);
+    if (c !== 'ok') return;
+  }
+  clearEntry();
+  toast('Unos je resetovan. Arhiva nije promenjena.');
+}
+function onFileChosen(file) {
+  if (!file) return;
+  if (state.previewUrl) URL.revokeObjectURL(state.previewUrl);
+  state.file = file;
+  state.previewUrl = URL.createObjectURL(file);
+  $('#preview').src = state.previewUrl;
+  $('#fileName').textContent = file.name || 'fotografija';
+  $('#previewBox').hidden = false;
+  showOcrMsg('');
+  $('#btnOcr').disabled = state.busy;
+  toast('Fotografija je spremna. Pritisnite „Prepoznaj tekst“.');
+}
+
+/* ============ ČUVANJE U ARHIVU ============ */
+function lastCorr(p) {
+  var best = null;
+  p.corrections.forEach(function (c) { if (!best || (c.date || '') >= (best.date || '')) best = c; });
+  return best;
+}
+function updateCount() {
+  $('#count').textContent = 'Sačuvano: ' + archive.length;
+}
+async function saveRows() {
+  if (!state.rows.length) { toast('Nema redova za čuvanje.', 'err'); return; }
+  var ok = true;
+  state.rows.forEach(function (r) {
+    r.err = {};
+    r.name = r.name.trim();
+    if (!r.name) { r.err.name = 1; ok = false; }
+    if (!r.station) { r.err.station = 1; ok = false; }
+    if (!r.dateProg || r.suggested) { r.err.dateProg = 1; ok = false; }
+  });
+  if (!ok) {
+    renderRows();
+    var first = $('#rowsBody .bad, #rowsBody .warn');
+    if (first && first.scrollIntoView) first.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    toast('Popunite obeležena polja (ime, stanica, datum). Predloženi datumi moraju biti potvrđeni.', 'err');
+    return;
+  }
+  var byName = new Map(archive.map(function (p) { return [p.name.toLowerCase(), p]; }));
+  var seen = {}, dupCount = 0;
+  state.rows.forEach(function (r) {
+    var k = r.name.toLowerCase();
+    if (byName.has(k) || seen[k]) dupCount++;
+    seen[k] = true;
+  });
+  var skipDup = false;
+  if (dupCount) {
+    var ch = await askChoice('Neki programi već postoje',
+      '<p><strong>' + dupCount + '</strong> ' + plural(dupCount, 'program', 'programa') + ' sa istim imenom već postoji u arhivi (ili se ponavlja u listi).</p>' +
+      '<p>Ništa se ne prepisuje. Možete ih dodati kao <strong>novu korekciju</strong> postojećem programu (datum i komentar se dodaju u istoriju), ili ih preskočiti.</p>',
+      [{ label: 'Dodaj kao korekcije', value: 'corr', cls: 'primary' },
+       { label: 'Preskoči duplikate', value: 'skip' },
+       { label: 'Nazad na izmenu', value: 'cancel' }]);
+    if (ch === 'cancel') return;
+    skipDup = ch === 'skip';
+  }
+  var touched = new Map(), added = 0, corr = 0, skipped = 0;
+  state.rows.forEach(function (r) {
+    var k = r.name.toLowerCase();
+    var ex = byName.get(k);
+    var cm = r.comment.trim();
+    if (ex) {
+      if (skipDup) { skipped++; return; }
+      ex.corrections.push({ id: uid(), date: r.dateMod || r.dateProg, comment: cm });
+      touched.set(ex.id, ex); corr++;
+    } else {
+      var p = { id: uid(), name: r.name, station: r.station, dateProg: r.dateProg, corrections: [], created: new Date().toISOString() };
+      if (r.dateMod || cm) p.corrections.push({ id: uid(), date: r.dateMod || '', comment: cm });
+      byName.set(k, p); archive.push(p); touched.set(p.id, p); added++;
+    }
+  });
+  try {
+    await store.putMany(Array.from(touched.values()));
+  } catch (e) {
+    try { archive = await store.getAll(); } catch (e2) { }
+    updateCount();
+    toast('Greška pri čuvanju: ' + (e && e.message ? e.message : 'nepoznata') + '. Podaci NISU sačuvani — pokušajte ponovo.', 'err');
+    return;
+  }
+  updateCount();
+  var parts = [];
+  if (added) parts.push(added + ' ' + plural(added, 'novi program', 'novih programa'));
+  if (corr) parts.push(corr + ' ' + plural(corr, 'korekcija', 'korekcija'));
+  if (skipped) parts.push(skipped + ' preskočeno');
+  clearEntry();
+  toast('✔ Sačuvano u arhivu: ' + parts.join(', ') + '.');
+}
+
+/* ============ ARHIVA ============ */
+function filteredArchive() {
+  var q = $('#q').value.trim().toLowerCase();
+  var qIn = $('#qIn').value;
+  var st = $('#fStation').value, from = $('#fFrom').value, to = $('#fTo').value;
+  return archive.filter(function (p) {
+    if (st && p.station !== st) return false;
+    if (from && (!p.dateProg || p.dateProg < from)) return false;
+    if (to && (!p.dateProg || p.dateProg > to)) return false;
+    if (q) {
+      var inName = p.name.toLowerCase().indexOf(q) >= 0;
+      var inCom = p.corrections.some(function (c) { return (c.comment || '').toLowerCase().indexOf(q) >= 0; });
+      if (qIn === 'name' && !inName) return false;
+      if (qIn === 'comment' && !inCom) return false;
+      if (qIn === 'both' && !inName && !inCom) return false;
+    }
+    return true;
+  }).sort(function (a, b) {
+    if (a.dateProg !== b.dateProg) return (b.dateProg || '').localeCompare(a.dateProg || '');
+    return a.name.localeCompare(b.name);
+  });
+}
+function renderArchive() {
+  var ids = new Set(archive.map(function (p) { return p.id; }));
+  Array.from(state.selected).forEach(function (id) { if (!ids.has(id)) state.selected.delete(id); });
+  var list = filteredArchive();
+  $('#archInfo').textContent = 'Prikazano ' + list.length + ' od ' + archive.length;
+  var empty = $('#archEmpty');
+  if (!list.length) {
+    empty.hidden = false;
+    empty.textContent = archive.length ? 'Nema rezultata za zadatu pretragu i filtere.' : 'Arhiva je prazna. Sačuvajte prvu listu na kartici „Unos“.';
+  } else empty.hidden = true;
+  $('#archBody').innerHTML = list.map(function (p) {
+    var lc = lastCorr(p);
+    var lcHtml = lc
+      ? '<strong>' + (lc.date ? fmtDate(lc.date) : 'bez datuma') + '</strong>' + (lc.comment ? '<div class="muted">' + esc(lc.comment.length > 90 ? lc.comment.slice(0, 90) + '…' : lc.comment) + '</div>' : '')
+      : '<span class="muted">—</span>';
+    return '<tr class="click" data-id="' + p.id + '">' +
+      '<td class="sel"><input type="checkbox" data-act="sel" data-id="' + p.id + '"' + (state.selected.has(p.id) ? ' checked' : '') + ' aria-label="Izaberi ' + esc(p.name) + '"></td>' +
+      '<td data-label="Program"><strong>' + esc(p.name) + '</strong></td>' +
+      '<td data-label="Stanica"><span class="tag">' + esc(p.station) + '</span></td>' +
+      '<td data-label="Programirano">' + fmtDate(p.dateProg) + '</td>' +
+      '<td data-label="Poslednja korekcija">' + lcHtml + '</td>' +
+      '<td data-label="Broj korekcija">' + p.corrections.length + '</td></tr>';
+  }).join('');
+  updateSelUI();
+}
+function updateSelUI() {
+  var n = state.selected.size;
+  var b = $('#btnDelSel');
+  b.textContent = 'Obriši izabrane (' + n + ')';
+  b.disabled = n === 0;
+}
+async function deleteSelected() {
+  var ids = Array.from(state.selected).filter(function (id) { return archive.some(function (p) { return p.id === id; }); });
+  var n = ids.length;
+  if (!n) return;
+  var label = n + ' ' + plural(n, 'program', 'programa');
+  var c = await askChoice('Obrisati ' + label + '?',
+    '<p>Biće trajno obrisani izabrani programi <strong>zajedno sa celom istorijom korekcija</strong>. Ovo se ne može poništiti.</p><p class="muted">Savet: pre brisanja izvezite JSON rezervnu kopiju.</p>',
+    [{ label: 'Nastavi', value: 'ok', cls: 'danger' }, { label: 'Nazad', value: 'no' }]);
+  if (c !== 'ok') return;
+  c = await askChoice('Poslednja potvrda', '<p>Zaista trajno obrisati <strong>' + label + '</strong>?</p>',
+    [{ label: 'Da, trajno obriši (' + n + ')', value: 'ok', cls: 'danger' }, { label: 'Ne, odustani', value: 'no' }]);
+  if (c !== 'ok') return;
+  try { await store.delMany(ids); }
+  catch (e) { toast('Brisanje nije uspelo: ' + (e && e.message ? e.message : 'greška'), 'err'); return; }
+  archive = archive.filter(function (p) { return ids.indexOf(p.id) < 0; });
+  state.selected.clear();
+  updateCount(); renderArchive();
+  toast('Obrisano: ' + label + '.');
+}
+
+/* ----- detalj programa ----- */
+function openDetail(id) { state.detailId = id; renderDetail(); $('#detail').hidden = false; $('#detailSheet').scrollTop = 0; }
+function closeDetail() { $('#detail').hidden = true; state.detailId = null; renderArchive(); }
+function renderDetail() {
+  var p = archive.filter(function (x) { return x.id === state.detailId; })[0];
+  if (!p) { closeDetail(); return; }
+  var hist = p.corrections.slice().sort(function (a, b) { return (b.date || '').localeCompare(a.date || ''); });
+  var lc = lastCorr(p);
+  var chips = STATIONS.map(function (s) {
+    return '<label class="chip"><input type="radio" name="dst" value="' + s + '"' + (p.station === s ? ' checked' : '') + '><span>' + s + '</span></label>';
+  }).join('');
+  $('#detailBody').innerHTML =
+    '<h3>' + esc(p.name) + '</h3>' +
+    '<p><span class="tag">' + esc(p.station) + '</span> &nbsp; Programirano: <strong>' + fmtDate(p.dateProg) + '</strong><br>' +
+    'Poslednja korekcija: <strong>' + (lc ? (lc.date ? fmtDate(lc.date) : 'bez datuma') : '—') + '</strong></p>' +
+    '<details><summary>Izmeni osnovne podatke</summary>' +
+      '<label class="lbl" for="dName">Ime programa</label><input type="text" id="dName" value="' + esc(p.name) + '" autocapitalize="off" autocorrect="off" spellcheck="false">' +
+      '<label class="lbl">Stanica</label><div class="chips">' + chips + '</div>' +
+      '<label class="lbl" for="dDate">Datum programiranja</label><input type="date" id="dDate" value="' + esc(p.dateProg) + '">' +
+      '<div class="btnrow"><button type="button" class="btn small primary" data-act="save-base">Sačuvaj izmene</button></div>' +
+    '</details>' +
+    '<h3 style="margin-top:16px">Istorija korekcija (' + p.corrections.length + ')</h3>' +
+    (hist.length ? '<ul class="hist">' + hist.map(function (c) {
+      return '<li><div class="d">' + (c.date ? fmtDate(c.date) : 'bez datuma') + '</div><div class="c">' + (c.comment ? esc(c.comment) : '<span class="muted">(bez komentara)</span>') + '</div>' +
+        '<button type="button" class="btn small dghost" style="margin-top:8px" data-act="del-corr" data-cid="' + c.id + '">Obriši ovu korekciju</button></li>';
+    }).join('') + '</ul>' : '<p class="muted">Još nema korekcija.</p>') +
+    '<h3 style="margin-top:16px">Dodaj novu korekciju</h3>' +
+    '<label class="lbl" for="nDate">Datum korekcije</label><input type="date" id="nDate" value="' + todayISO() + '">' +
+    '<label class="lbl" for="nCom">Komentar / ID šava</label><textarea id="nCom" rows="3" placeholder="npr. Potrebna korekcija ID šava 125"></textarea>' +
+    '<div class="btnrow"><button type="button" class="btn primary" data-act="add-corr">➕ Dodaj korekciju</button></div>' +
+    '<div class="btnrow"><button type="button" class="btn dghost" data-act="del-prog">🗑️ Obriši program iz arhive</button></div>';
+}
+async function persistProgram(p) {
+  try { await store.putMany([p]); return true; }
+  catch (e) { toast('Čuvanje nije uspelo: ' + (e && e.message ? e.message : 'greška'), 'err'); return false; }
+}
+async function onDetailClick(e) {
+  var btn = e.target.closest('button[data-act]');
+  if (!btn) return;
+  var p = archive.filter(function (x) { return x.id === state.detailId; })[0];
+  if (!p) return;
+  var act = btn.dataset.act;
+  if (act === 'add-corr') {
+    var date = $('#nDate').value, com = $('#nCom').value.trim();
+    if (!date) { toast('Unesite datum korekcije.', 'err'); return; }
+    p.corrections.push({ id: uid(), date: date, comment: com });
+    if (await persistProgram(p)) { renderDetail(); toast('Korekcija je dodata u istoriju.'); }
+    else p.corrections.pop();
+  } else if (act === 'del-corr') {
+    var cid = btn.dataset.cid;
+    var c = await askChoice('Obrisati korekciju?', '<p>Briše se samo ova korekcija iz istorije programa <strong>' + esc(p.name) + '</strong>.</p>',
+      [{ label: 'Da, obriši korekciju', value: 'ok', cls: 'danger' }, { label: 'Nazad', value: 'no' }]);
+    if (c !== 'ok') return;
+    var old = p.corrections.slice();
+    p.corrections = p.corrections.filter(function (x) { return x.id !== cid; });
+    if (await persistProgram(p)) { renderDetail(); toast('Korekcija je obrisana.'); } else p.corrections = old;
+  } else if (act === 'del-prog') {
+    var c2 = await askChoice('Obrisati program iz arhive?',
+      '<p>Program <strong>' + esc(p.name) + '</strong> biće trajno obrisan <strong>zajedno sa istorijom korekcija</strong> (' + p.corrections.length + '). Ovo se ne može poništiti.</p>',
+      [{ label: 'Da, obriši program', value: 'ok', cls: 'danger' }, { label: 'Nazad', value: 'no' }]);
+    if (c2 !== 'ok') return;
+    try { await store.delMany([p.id]); } catch (er) { toast('Brisanje nije uspelo.', 'err'); return; }
+    archive = archive.filter(function (x) { return x.id !== p.id; });
+    state.selected.delete(p.id);
+    updateCount(); closeDetail();
+    toast('Program je obrisan iz arhive.');
+  } else if (act === 'save-base') {
+    var nm = $('#dName').value.trim();
+    var stEl = $('input[name=dst]:checked', $('#detailBody'));
+    var dt = $('#dDate').value;
+    if (!nm || !stEl || !dt) { toast('Ime, stanica i datum programiranja su obavezni.', 'err'); return; }
+    var clash = archive.some(function (x) { return x.id !== p.id && x.name.toLowerCase() === nm.toLowerCase(); });
+    if (clash) { toast('Program sa tim imenom već postoji u arhivi.', 'err'); return; }
+    var bak = { name: p.name, station: p.station, dateProg: p.dateProg };
+    p.name = nm; p.station = stEl.value; p.dateProg = dt;
+    if (await persistProgram(p)) { renderDetail(); toast('Izmene su sačuvane.'); }
+    else Object.assign(p, bak);
+  }
+}
+
+/* ============ IZVOZ / UVOZ ============ */
+function download(name, mime, content) {
+  var blob = new Blob([content], { type: mime });
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url; a.download = name;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(function () { URL.revokeObjectURL(url); }, 5000);
+}
+function exportJson() {
+  var data = { app: 'arhiva-programa', version: 1, exported: new Date().toISOString(), programs: archive };
+  download('arhiva-programa-' + todayISO() + '.json', 'application/json', JSON.stringify(data, null, 2));
+  toast('JSON rezervna kopija je preuzeta (' + archive.length + ' programa).');
+}
+function csvCell(v) {
+  v = String(v == null ? '' : v);
+  return '"' + v.replace(/"/g, '""') + '"';
+}
+function exportCsv() {
+  var head = ['Ime programa', 'Stanica', 'Datum programiranja', 'Datum poslednje korekcije', 'Poslednji komentar', 'Broj korekcija', 'Istorija korekcija'];
+  var rows = archive.slice().sort(function (a, b) { return a.name.localeCompare(b.name); }).map(function (p) {
+    var lc = lastCorr(p);
+    var hist = p.corrections.slice().sort(function (a, b) { return (a.date || '').localeCompare(b.date || ''); })
+      .map(function (c) { return (c.date ? fmtDate(c.date) : 'bez datuma') + ': ' + (c.comment || ''); }).join(' | ');
+    return [p.name, p.station, fmtDate(p.dateProg), lc && lc.date ? fmtDate(lc.date) : '', lc ? lc.comment : '', p.corrections.length, hist];
+  });
+  var csv = '\uFEFF' + [head].concat(rows).map(function (r) { return r.map(csvCell).join(';'); }).join('\r\n');
+  download('arhiva-programa-' + todayISO() + '.csv', 'text/csv;charset=utf-8', csv);
+  toast('CSV je preuzet (' + archive.length + ' programa).');
+}
+var ISO_RE = /^\d{4}-\d{2}-\d{2}$/;
+function normProgram(o) {
+  if (!o || typeof o !== 'object') return null;
+  var name = String(o.name == null ? '' : o.name).trim();
+  var station = String(o.station || '').trim().toUpperCase();
+  if (!name || STATIONS.indexOf(station) < 0 || !ISO_RE.test(o.dateProg || '')) return null;
+  var corrections = (Array.isArray(o.corrections) ? o.corrections : []).map(function (c) {
+    return { id: c && c.id ? String(c.id) : uid(), date: ISO_RE.test((c && c.date) || '') ? c.date : '', comment: String((c && c.comment) || '') };
+  }).filter(function (c) { return c.date || c.comment.trim(); });
+  return { id: o.id ? String(o.id) : uid(), name: name, station: station, dateProg: o.dateProg, corrections: corrections, created: o.created || new Date().toISOString() };
+}
+function mergeProgram(ex, inc) {
+  var keys = new Set(ex.corrections.map(function (c) { return c.date + '|' + c.comment.trim(); }));
+  var n = 0;
+  inc.corrections.forEach(function (c) {
+    var k = c.date + '|' + c.comment.trim();
+    if (!keys.has(k)) { ex.corrections.push({ id: uid(), date: c.date, comment: c.comment }); keys.add(k); n++; }
+  });
+  return n;
+}
+async function importJsonText(text) {
+  var data;
+  try { data = JSON.parse(text); } catch (e) { toast('Fajl nije ispravan JSON.', 'err'); return; }
+  var list = Array.isArray(data) ? data : (data && Array.isArray(data.programs) ? data.programs : null);
+  if (!list) { toast('Fajl ne izgleda kao rezervna kopija ove aplikacije.', 'err'); return; }
+  var incoming = new Map(), invalid = 0;
+  list.forEach(function (o) {
+    var p = normProgram(o);
+    if (!p) { invalid++; return; }
+    var k = p.name.toLowerCase();
+    if (incoming.has(k)) mergeProgram(incoming.get(k), p); else incoming.set(k, p);
+  });
+  if (!incoming.size) { toast('U fajlu nema važećih programa.' + (invalid ? ' (' + invalid + ' preskočeno)' : ''), 'err'); return; }
+  var byName = new Map(archive.map(function (p) { return [p.name.toLowerCase(), p]; }));
+  var dups = 0;
+  incoming.forEach(function (p, k) { if (byName.has(k)) dups++; });
+  var fresh = incoming.size - dups;
+  var html = '<p>Kopija sadrži <strong>' + incoming.size + '</strong> programa: <strong>' + fresh + '</strong> novih i <strong>' + dups + '</strong> koji već postoje u arhivi (po imenu).' +
+    (invalid ? ' Preskočeno nevažećih zapisa: ' + invalid + '.' : '') + '</p>' +
+    '<p><strong>Spoji</strong> — dodaje nove programe i samo nove korekcije postojećim; ništa se ne briše ni prepisuje (nema dupliranja).</p>' +
+    '<p><strong>Prepiši</strong> — briše trenutnu arhivu (' + archive.length + ' programa) i zamenjuje je sadržajem kopije.</p>';
+  var ch = await askChoice('Uvoz rezervne kopije', html,
+    [{ label: 'Spoji sa arhivom (preporučeno)', value: 'merge', cls: 'primary' },
+     { label: 'Prepiši celu arhivu', value: 'replace', cls: 'dghost' },
+     { label: 'Otkaži', value: 'cancel' }]);
+  if (ch === 'cancel') return;
+  try {
+    if (ch === 'replace') {
+      var c2 = await askChoice('Prepisati arhivu?', '<p>Trenutna arhiva (<strong>' + archive.length + '</strong> programa) biće obrisana. Preporuka: prvo izvezite JSON.</p>',
+        [{ label: 'Da, prepiši arhivu', value: 'ok', cls: 'danger' }, { label: 'Nazad', value: 'no' }]);
+      if (c2 !== 'ok') return;
+      var ids = new Set(), arr = [];
+      incoming.forEach(function (p) { if (ids.has(p.id)) p.id = uid(); ids.add(p.id); arr.push(p); });
+      await store.clear();
+      await store.putMany(arr);
+      archive = arr;
+      toast('Arhiva je prepisana: ' + arr.length + ' programa.');
+    } else {
+      var touched = new Map(), added = 0, newCorr = 0;
+      incoming.forEach(function (p, k) {
+        var ex = byName.get(k);
+        if (ex) { var n = mergeProgram(ex, p); if (n) { newCorr += n; touched.set(ex.id, ex); } }
+        else {
+          if (archive.some(function (x) { return x.id === p.id; })) p.id = uid();
+          archive.push(p); byName.set(k, p); touched.set(p.id, p); added++;
+        }
+      });
+      await store.putMany(Array.from(touched.values()));
+      toast('Uvoz završen: ' + added + ' novih programa, ' + newCorr + ' novih korekcija.');
+    }
+  } catch (e) {
+    try { archive = await store.getAll(); } catch (e2) { }
+    toast('Uvoz nije uspeo: ' + (e && e.message ? e.message : 'greška'), 'err');
+  }
+  updateCount(); renderBackup(); renderArchive();
+}
+function renderBackup() {
+  $('#bkCount').textContent = archive.length;
+  $('#bkStore').textContent = 'Skladište: ' + (store ? store.name : '—');
+}
+
+/* ============ NAVIGACIJA I DOGAĐAJI ============ */
+function showTab(n) {
+  ['unos', 'arhiva', 'kopija'].forEach(function (t) {
+    $('#tab-' + t).hidden = t !== n;
+    $('#nav-' + t).classList.toggle('on', t === n);
+  });
+  if (n === 'arhiva') renderArchive();
+  if (n === 'kopija') renderBackup();
+  window.scrollTo(0, 0);
+}
+function bindEvents() {
+  $('#nav-unos').addEventListener('click', function () { showTab('unos'); });
+  $('#nav-arhiva').addEventListener('click', function () { showTab('arhiva'); });
+  $('#nav-kopija').addEventListener('click', function () { showTab('kopija'); });
+
+  $('#gStation').addEventListener('change', function (e) {
+    if (e.target.name !== 'gst') return;
+    state.globalStation = e.target.value;
+    state.rows.forEach(function (r) { r.station = state.globalStation; r.err.station = 0; });
+    renderRows();
+  });
+  $('#btnCam').addEventListener('click', function () { $('#camInput').click(); });
+  $('#btnGal').addEventListener('click', function () { $('#galInput').click(); });
+  ['camInput', 'galInput'].forEach(function (id) {
+    $('#' + id).addEventListener('change', function (e) { var f = e.target.files && e.target.files[0]; onFileChosen(f); e.target.value = ''; });
+  });
+  $('#btnOcr').addEventListener('click', runOcr);
+  $('#btnAddRow').addEventListener('click', function () {
+    state.rows.push(newRow({ suggested: true, note: 'Predlog: današnji datum. Potvrdite ga ili ga promenite.' }));
+    renderRows();
+    var inputs = $$('#rowsBody input[data-f=name]');
+    if (inputs.length) inputs[inputs.length - 1].focus();
+  });
+  $('#btnSave').addEventListener('click', saveRows);
+  $('#btnReset').addEventListener('click', resetEntry);
+
+  var body = $('#rowsBody');
+  ['input', 'change'].forEach(function (evt) {
+    body.addEventListener(evt, function (e) {
+      var t = e.target, tr = t.closest('tr');
+      if (!tr) return;
+      var r = rowByUid(tr.dataset.uid);
+      if (!r) return;
+      if (t.dataset.act === 'row-station') {
+        r.station = t.value;
+        var chips = tr.querySelector('.chips'); if (chips) chips.classList.remove('bad');
+        return;
+      }
+      var f = t.dataset.f;
+      if (!f) return;
+      r[f] = t.value;
+      t.classList.remove('bad');
+      if (f === 'dateProg' && r.suggested && evt === 'change') {
+        r.suggested = false;
+        var w = tr.querySelector('.warn'); if (w) w.remove();
+      }
+    });
+  });
+  body.addEventListener('click', function (e) {
+    var b = e.target.closest('button[data-act]');
+    if (!b) return;
+    var tr = b.closest('tr'), r = rowByUid(tr.dataset.uid);
+    if (!r) return;
+    if (b.dataset.act === 'row-del') { state.rows = state.rows.filter(function (x) { return x !== r; }); renderRows(); }
+    else if (b.dataset.act === 'confirm-date') { r.suggested = false; r.err.dateProg = 0; var w = tr.querySelector('.warn'); if (w) w.remove(); var di = tr.querySelector('input[data-f=dateProg]'); if (di) di.classList.remove('bad'); }
+  });
+
+  ['q', 'qIn', 'fStation', 'fFrom', 'fTo'].forEach(function (id) {
+    $('#' + id).addEventListener('input', renderArchive);
+    $('#' + id).addEventListener('change', renderArchive);
+  });
+  $('#btnClearF').addEventListener('click', function () {
+    $('#q').value = ''; $('#qIn').value = 'both'; $('#fStation').value = ''; $('#fFrom').value = ''; $('#fTo').value = '';
+    renderArchive();
+  });
+  $('#archBody').addEventListener('click', function (e) {
+    if (e.target.closest('input')) return;
+    var tr = e.target.closest('tr[data-id]');
+    if (tr) openDetail(tr.dataset.id);
+  });
+  $('#archBody').addEventListener('change', function (e) {
+    var t = e.target;
+    if (t.dataset.act !== 'sel') return;
+    if (t.checked) state.selected.add(t.dataset.id); else state.selected.delete(t.dataset.id);
+    updateSelUI();
+  });
+  $('#btnSelAll').addEventListener('click', function () {
+    var list = filteredArchive();
+    var all = list.length > 0 && list.every(function (p) { return state.selected.has(p.id); });
+    list.forEach(function (p) { if (all) state.selected.delete(p.id); else state.selected.add(p.id); });
+    renderArchive();
+  });
+  $('#btnDelSel').addEventListener('click', deleteSelected);
+  $('#btnCloseDetail').addEventListener('click', closeDetail);
+  $('#detailBody').addEventListener('click', onDetailClick);
+
+  $('#btnExpJson').addEventListener('click', exportJson);
+  $('#btnExpCsv').addEventListener('click', exportCsv);
+  $('#btnImp').addEventListener('click', function () { $('#impInput').click(); });
+  $('#impInput').addEventListener('change', function (e) {
+    var f = e.target.files && e.target.files[0];
+    e.target.value = '';
+    if (!f) return;
+    var fr = new FileReader();
+    fr.onload = function () { importJsonText(String(fr.result || '')); };
+    fr.onerror = function () { toast('Fajl se ne može pročitati.', 'err'); };
+    fr.readAsText(f);
+  });
+  window.addEventListener('beforeunload', function (e) {
+    if (state.rows.length) { e.preventDefault(); e.returnValue = ''; }
+  });
+}
+
+async function init() {
+  bindEvents();
+  renderRows();
+  try { store = await initStorage(); archive = await store.getAll(); }
+  catch (e) { store = memBackend(); archive = []; }
+  archive.forEach(function (p) { if (!Array.isArray(p.corrections)) p.corrections = []; });
+  updateCount();
+  if (store.volatile) {
+    var w = $('#storeWarn');
+    w.hidden = false;
+    w.textContent = 'Upozorenje: pregledač ne dozvoljava trajno čuvanje (privatno pregledanje ili ograničenje). Podaci će nestati kada zatvorite stranicu — izvezite JSON kopiju pre zatvaranja.';
+  }
+  try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(function () { }); } catch (e) { }
+}
+init();
+</script>
+</body>
+</html>
