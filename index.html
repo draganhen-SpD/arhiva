@@ -128,37 +128,21 @@ nav.tabs button.on{color:var(--pri)}
     </div>
 
     <div class="card">
-      <h2>2. Fotografija liste</h2>
+      <h2>2. Prepoznavanje teksta iPhone-om</h2>
+      <p>Koristi Apple-ovo prepoznavanje teksta preko prečice „Skeniraj program“. Fotografija i tekst se obrađuju na iPhone-u.</p>
       <div class="btnrow">
-        <button type="button" class="btn primary" id="btnCam">📷 Slikaj listu</button>
-        <button type="button" class="btn" id="btnGal">🖼️ Izaberi iz galerije</button>
+        <button type="button" class="btn primary" id="btnNativeScan">📸 Skeniraj i prosledi tekst</button>
       </div>
+      <label class="lbl" for="nativeText">Ili nalepi prepoznati tekst ovde</label>
+      <textarea id="nativeText" rows="5" placeholder="Nalepi tekst koji je iPhone prepoznao…"></textarea>
+      <div class="btnrow"><button type="button" class="btn" id="btnUseText">Obradi tekst</button></div>
+      <div id="ocrMsg" class="msg" hidden></div>
+      <details id="rawBox" hidden><summary>Prikaži prepoznati tekst</summary><pre id="rawText"></pre></details>
+      <p class="hint">Važno: prečicu „Skeniraj program“ napravi jednom u aplikaciji Prečice. Uputstvo je ispod programa koji dobijaš.</p>
       <input class="vh" type="file" id="camInput" accept="image/*" capture="environment" tabindex="-1">
       <input class="vh" type="file" id="galInput" accept="image/*" tabindex="-1">
-      <div id="previewBox" hidden>
-        <img id="preview" alt="Fotografija liste">
-        <div class="muted" id="fileName"></div>
-      </div>
-      <label class="lbl" for="ocrMode">Način prepoznavanja</label>
-      <select id="ocrMode">
-        <option value="7">Jedan naziv / veliki tekst (preporučeno)</option>
-        <option value="6">Lista / tabela</option>
-        <option value="3">Automatski</option>
-        <option value="11">Razbacan tekst</option>
-      </select>
-      <div class="btnrow">
-        <button type="button" class="btn primary" id="btnOcr" disabled>🔍 Prepoznaj tekst</button>
-      </div>
-      <div id="prog" hidden>
-        <div class="bar"><div id="barFill"></div></div>
-        <div class="muted" id="progText"></div>
-      </div>
-      <div id="ocrMsg" class="msg" hidden></div>
-      <details id="rawBox" hidden>
-        <summary>Prikaži tekst koji je OCR prepoznao</summary>
-        <pre id="rawText"></pre>
-      </details>
-      <p class="hint">OCR zahteva internet vezu (biblioteka i jezički podaci se preuzimaju prvi put). Fotografija se ne šalje nikome na obradu — prepoznavanje se izvršava u vašem pregledaču.</p>
+      <div id="previewBox" hidden><img id="preview" alt="Fotografija liste"><div class="muted" id="fileName"></div></div>
+      <div id="prog" hidden><div class="bar"><div id="barFill"></div><div class="muted" id="progText"></div></div></div>
     </div>
 
     <div class="card">
@@ -297,7 +281,8 @@ var STATIONS = ['ROY_69', 'ROY_70', 'ROY_72', 'ROY_73'];
 var DB_NAME = 'arhiva-programa';
 var STORE = 'programs';
 var OCR_CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_-./ ';
-var TESS_CDN = 'https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js';
+// OCR obavlja iPhone preko Apple Shortcuts; nema dodatnih OCR biblioteka.
+var SHORTCUT_NAME = 'Skeniraj program';
 
 var state = {
   rows: [],
@@ -507,77 +492,6 @@ function rowsFromParsed(parsed) {
 }
 
 /* ============ OCR: SLIKA I TESSERACT ============ */
-function loadImage(file) {
-  return new Promise(function (resolve, reject) {
-    var url = URL.createObjectURL(file);
-    var img = new Image();
-    img.onload = function () { URL.revokeObjectURL(url); resolve(img); };
-    img.onerror = function () { URL.revokeObjectURL(url); reject(new Error('Slika se ne može otvoriti.')); };
-    img.src = url;
-  });
-}
-function prepareCanvas(file) {
-  return loadImage(file).then(function (img) {
-    var MAX = 2400;
-    var w = img.naturalWidth, h = img.naturalHeight;
-    var k = Math.min(1, MAX / Math.max(w, h));
-    w = Math.max(1, Math.round(w * k)); h = Math.max(1, Math.round(h * k));
-    var PAD = 60;
-    var c = document.createElement('canvas');
-    c.width = w + 2 * PAD; c.height = h + 2 * PAD;
-    var ctx = c.getContext('2d');
-    ctx.fillStyle = '#ffffff';
-    ctx.fillRect(0, 0, c.width, c.height);
-    ctx.drawImage(img, PAD, PAD, w, h);
-    w = c.width; h = c.height;
-    try {
-      var id = ctx.getImageData(0, 0, w, h), d = id.data, hist = new Uint32Array(256), i;
-      for (i = 0; i < d.length; i += 4) {
-        var g = ((d[i] * 299 + d[i + 1] * 587 + d[i + 2] * 114) / 1000) | 0;
-        d[i] = g; hist[g]++;
-      }
-      var total = w * h, acc = 0, lo = 0, hi = 255;
-      for (i = 0; i < 256; i++) { acc += hist[i]; if (acc >= total * 0.01) { lo = i; break; } }
-      acc = 0;
-      for (i = 255; i >= 0; i--) { acc += hist[i]; if (acc >= total * 0.01) { hi = i; break; } }
-      if (hi - lo < 30) { lo = 0; hi = 255; }
-      var sc = 255 / (hi - lo);
-      for (i = 0; i < d.length; i += 4) {
-        var v = (d[i] - lo) * sc;
-        v = v < 0 ? 0 : (v > 255 ? 255 : v);
-        d[i] = d[i + 1] = d[i + 2] = v;
-      }
-      ctx.putImageData(id, 0, 0);
-    } catch (e) { /* ako obrada piksela ne uspe, koristi se original */ }
-    return c;
-  });
-}
-var tessPromise = null;
-function loadTesseract() {
-  if (window.Tesseract) return Promise.resolve();
-  if (tessPromise) return tessPromise;
-  tessPromise = new Promise(function (resolve, reject) {
-    var s = document.createElement('script');
-    s.src = TESS_CDN;
-    s.onload = function () { window.Tesseract ? resolve() : reject(new Error('lib')); };
-    s.onerror = function () { s.remove(); reject(new Error('lib')); };
-    document.head.appendChild(s);
-  });
-  tessPromise.catch(function () { tessPromise = null; });
-  return tessPromise;
-}
-function setProgress(text, frac) {
-  $('#prog').hidden = false;
-  $('#progText').textContent = text;
-  $('#barFill').style.width = Math.round(Math.max(0, Math.min(1, frac)) * 100) + '%';
-}
-function statusSr(s) {
-  s = String(s || '');
-  if (s.indexOf('loading tesseract core') >= 0) return 'Učitavanje OCR programa…';
-  if (s.indexOf('language') >= 0) return 'Preuzimanje jezičkih podataka…';
-  if (s.indexOf('initializ') >= 0) return 'Pokretanje OCR-a…';
-  return 'Priprema…';
-}
 function showOcrMsg(text, type) {
   var m = $('#ocrMsg');
   if (!text) { m.hidden = true; return; }
@@ -587,61 +501,21 @@ function showOcrMsg(text, type) {
 }
 function setBusy(b) {
   state.busy = b;
-  $('#btnOcr').disabled = b || !state.file;
-  $('#btnCam').disabled = b;
-  $('#btnGal').disabled = b;
+  if ($('#btnNativeScan')) $('#btnNativeScan').disabled = b;
+  if ($('#btnUseText')) $('#btnUseText').disabled = b;
 }
 async function runOcr() {
-  if (state.busy) return;
-  if (!state.file) { toast('Prvo slikajte listu ili izaberite fotografiju.', 'err'); return; }
-  showOcrMsg('');
-  setBusy(true);
-  var worker = null;
-  try {
-    setProgress('Učitavanje OCR biblioteke…', 0.03);
-    try { await loadTesseract(); }
-    catch (e) {
-      showOcrMsg(navigator.onLine === false
-        ? 'Nema internet veze. OCR biblioteka se učitava preko interneta — povežite se i pokušajte ponovo.'
-        : 'OCR biblioteka ne može da se učita. Proverite internet vezu i pokušajte ponovo.', 'err');
-      return;
-    }
-    setProgress('Priprema slike…', 0.06);
-    var canvas = await prepareCanvas(state.file);
-    var mode = $('#ocrMode').value;
-    try {
-      worker = await Tesseract.createWorker('eng', 1, {
-        logger: function (m) {
-          if (m.status === 'recognizing text') setProgress('Prepoznavanje teksta… ' + Math.round(m.progress * 100) + '%', 0.15 + 0.85 * m.progress);
-          else setProgress(statusSr(m.status), 0.1);
-        }
-      });
-    } catch (e) {
-      showOcrMsg('OCR nije mogao da se pokrene (verovatno nedostaje internet za preuzimanje jezičkih podataka). Proverite vezu i pokušajte ponovo.', 'err');
-      return;
-    }
-    var order = [mode].concat(['7', '6', '11', '3'].filter(function (m) { return m !== mode; }));
-    var firstText = '', goodText = '', all = [];
-    for (var oi = 0; oi < order.length; oi++) {
-      setProgress('Prepoznavanje teksta… (pokušaj ' + (oi + 1) + ' od ' + order.length + ')', 0.2);
-      try { await worker.setParameters({ tessedit_pageseg_mode: order[oi], preserve_interword_spaces: '1', tessedit_char_whitelist: OCR_CHARS }); } catch (e) { /* nije kritično */ }
-      var res = await worker.recognize(canvas);
-      var text = (res && res.data && res.data.text) || '';
-      all.push('[način ' + order[oi] + '] ' + (text.trim() || '(prazno)'));
-      if (!firstText && text.trim()) firstText = text;
-      if (parseOcrText(text).found.length) { goodText = text; break; }
-    }
-    $('#rawText').textContent = all.join('\n');
-    $('#rawBox').hidden = false;
-    await applyOcrText(goodText || firstText, !goodText);
-  } catch (e) {
-    showOcrMsg('Prepoznavanje nije uspelo: ' + (e && e.message ? e.message : 'nepoznata greška') + '. Pokušajte ponovo sa jasnijom fotografijom ili dodajte redove ručno.', 'err');
-  } finally {
-    if (worker) { try { await worker.terminate(); } catch (e) { } }
-    $('#prog').hidden = true;
-    setBusy(false);
-  }
+  var text = ($('#nativeText') && $('#nativeText').value || '').trim();
+  if (text) { await applyOcrText(text, true); return; }
+  // Launch the user-created Apple Shortcut. It must return to this page with ?ocr=TEXT.
+  var url = new URL(window.location.href);
+  url.search = ''; url.hash = '';
+  var callback = url.toString();
+  var shortcutUrl = 'shortcuts://run-shortcut?name=' + encodeURIComponent(SHORTCUT_NAME) + '&input=text&text=' + encodeURIComponent(callback);
+  showOcrMsg('Otvaram Apple Prečicu… Ako se ne otvori, proveri da li se zove „' + SHORTCUT_NAME + '“.', 'info');
+  window.location.href = shortcutUrl;
 }
+
 async function applyOcrText(text, useFallback) {
   var parsed = parseOcrText(text);
   var guessed = false;
@@ -701,40 +575,28 @@ function renderRows() {
 function clearEntry() {
   state.rows = [];
   state.file = null;
-  if (state.previewUrl) { URL.revokeObjectURL(state.previewUrl); state.previewUrl = ''; }
-  $('#previewBox').hidden = true;
-  $('#preview').removeAttribute('src');
-  $('#rawBox').hidden = true;
-  $('#rawText').textContent = '';
-  $('#camInput').value = '';
-  $('#galInput').value = '';
+  if ($('#nativeText')) $('#nativeText').value = '';
+  if ($('#previewBox')) $('#previewBox').hidden = true;
+  if ($('#preview')) $('#preview').removeAttribute('src');
+  if ($('#rawBox')) $('#rawBox').hidden = true;
+  if ($('#rawText')) $('#rawText').textContent = '';
+  if ($('#camInput')) $('#camInput').value = '';
+  if ($('#galInput')) $('#galInput').value = '';
   showOcrMsg('');
-  $('#prog').hidden = true;
-  $('#btnOcr').disabled = true;
+  if ($('#prog')) $('#prog').hidden = true;
   renderRows();
 }
 async function resetEntry() {
-  if (state.rows.length || state.file) {
+  if (state.rows.length || ($('#nativeText') && $('#nativeText').value.trim())) {
     var c = await askChoice('Resetovati trenutni unos?',
-      '<p>Briše se pripremljena lista i fotografija koje još nisu sačuvane. <strong>Sačuvana arhiva se ne briše.</strong></p>',
+      '<p>Briše se pripremljena lista koja još nije sačuvana. <strong>Sačuvana arhiva se ne briše.</strong></p>',
       [{ label: 'Da, resetuj unos', value: 'ok', cls: 'danger' }, { label: 'Nazad', value: 'no' }]);
     if (c !== 'ok') return;
   }
   clearEntry();
   toast('Unos je resetovan. Arhiva nije promenjena.');
 }
-function onFileChosen(file) {
-  if (!file) return;
-  if (state.previewUrl) URL.revokeObjectURL(state.previewUrl);
-  state.file = file;
-  state.previewUrl = URL.createObjectURL(file);
-  $('#preview').src = state.previewUrl;
-  $('#fileName').textContent = file.name || 'fotografija';
-  $('#previewBox').hidden = false;
-  showOcrMsg('');
-  $('#btnOcr').disabled = state.busy;
-  toast('Fotografija je spremna. Pritisnite „Prepoznaj tekst“.');
-}
+function onFileChosen(file) { /* Fotografiju obrađuje Apple Shortcuts, ne HTML. */ }
 
 /* ============ ČUVANJE U ARHIVU ============ */
 function lastCorr(p) {
@@ -1097,12 +959,12 @@ function bindEvents() {
     state.rows.forEach(function (r) { r.station = state.globalStation; r.err.station = 0; });
     renderRows();
   });
-  $('#btnCam').addEventListener('click', function () { $('#camInput').click(); });
-  $('#btnGal').addEventListener('click', function () { $('#galInput').click(); });
-  ['camInput', 'galInput'].forEach(function (id) {
-    $('#' + id).addEventListener('change', function (e) { var f = e.target.files && e.target.files[0]; onFileChosen(f); e.target.value = ''; });
+  $('#btnNativeScan').addEventListener('click', runOcr);
+  $('#btnUseText').addEventListener('click', function () {
+    var t = $('#nativeText').value.trim();
+    if (!t) { showOcrMsg('Prvo prepoznaj tekst i nalepi ga ovde, ili pokreni Apple Prečicu.', 'err'); return; }
+    $('#rawText').textContent = t; $('#rawBox').hidden = false; applyOcrText(t, true);
   });
-  $('#btnOcr').addEventListener('click', runOcr);
   $('#btnAddRow').addEventListener('click', function () {
     state.rows.push(newRow({ suggested: true, note: 'Predlog: današnji datum. Potvrdite ga ili ga promenite.' }));
     renderRows();
@@ -1203,6 +1065,20 @@ async function init() {
   }
   try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(function () { }); } catch (e) { }
 }
+// Tekst koji Apple Prečica vrati kroz URL automatski se učitava u unos.
+(function receiveShortcutText() {
+  try {
+    var u = new URL(window.location.href);
+    var incoming = u.searchParams.get('ocr');
+    if (incoming) {
+      $('#nativeText').value = incoming;
+      $('#rawText').textContent = incoming; $('#rawBox').hidden = false;
+      // Ukloni OCR parametar iz adrese da osvežavanje ne duplira unos.
+      u.searchParams.delete('ocr'); history.replaceState({}, '', u.toString());
+      setTimeout(function () { applyOcrText(incoming, true); }, 300);
+    }
+  } catch (e) { /* ignorisi neispravan callback */ }
+})();
 init();
 </script>
 </body>
